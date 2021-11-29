@@ -27,7 +27,7 @@ pizzaJson.map((item, index)=>{// função  anonima
         //agora se tem acesso a pizza especificas quando sao clicadas  porque pega a referencia de cada uma do json
         let key = e.target.closest('.pizza-item').getAttribute('data-key');//Ache o elemnto mais proximo a partir da tag a tanto antes ou depois
         modalQt = 1;
-        modalKey = key;
+        modalKey = key;//indice do json
 
         c('.pizzaBig img').src = pizzaJson[key].img;
         c('.pizzaInfo h1').innerHTML = pizzaJson[key].name;
@@ -92,13 +92,67 @@ cs('.pizzaInfo--size').forEach((size, sizeIndex)=>{
 c('.pizzaInfo--addButton').addEventListener('click', ()=>{
     //reunir as infos para add no carrinho quando clicar
     let size = parseInt(c('.pizzaInfo--size.selected').getAttribute('data-key'));//Pegando o tamanho que foi selecionado
-
-    //pegando do json qual e a pizza seleciondada e pegando o id da selecionada
-    cart.push({
-        id:pizzaJson[modalKey].id,
-        size,
-        qt:modalQt
-    });
-   closeModal(); 
+    let identifier = pizzaJson[modalKey].id+'@'+size;
+    let key = cart.findIndex((item)=>item.identifier == identifier);   //condição
+        //Verificando qual dos identifier do carringo é igual ao novo identifier criado e igual
+        //caso ache retorna o idenx se nao achar -1
+    // let key = cart.findIndex((item)=>{
+    //     return item.identifier = identifier
+    //     //Verificando qual dos identifier do carringo é igual ao novo identifier criado e igual
+    //     //caso ache retorna o idenx se nao achar
+    // });
     
+    if(key > -1){//se ele achar o item
+        cart[key].qt += modalQt
+    }else{
+        //pegando do json qual e a pizza seleciondada e pegando o id da selecionada
+        cart.push({//modalKey esta passando apenas o indice da pizza selecioadna que é passada para o json buscar as infos
+            identifier,
+            id:pizzaJson[modalKey].id,
+            size,//ou size: size
+            qt:modalQt
+        });
+    }
+    updateCart();
+    closeModal(); 
 });
+
+function updateCart() {
+    if(cart.length > 0){//Caso tenha itens no carrinho
+        c('aside').classList.add('show');
+        c('.cart').innerHTML = '';//ira sempre zerar e mostrar a list dos itens/ primeiro zera dps o append
+        for(let i in cart ){
+            //Acesadno o json e procura o itens que tenham os mesmos ids que tem nos temos
+            //Find chama o item e retorna para ele :        busca
+            let pizzaItem = pizzaJson.find((item)=> item.id == cart[i].id)//Se tem o id do item e ira procurar o id dentro do json e retorna o item inteiro
+            // let pizzaItem = pizzaJson.find((item)=>{//item == itens do json //Find chama o item e retorna para ele :
+            //     return item.id = cart[id].id;})
+
+            let cartItem = c('.models .cart--item').cloneNode(true);//Selecionando a class e a clonando todos os itens dentro para dps exibir
+            
+            let pizzaSizeName;
+            switch(cart[i].size){
+                case 0:
+                    pizzaSizeName = 'P';
+                    break;
+                case 1:
+                    pizzaSizeName = 'M';
+                    break;
+                case 2:
+                    pizzaSizeName = 'G';
+                break;
+            }
+            let pizzaName = `${pizzaItem.name} (${pizzaSizeName})`;
+            //Adicionado as informaçoes 
+            cartItem.querySelector('img').src = pizzaItem.img;
+            cartItem.querySelector('.cart--item-nome').innerHTML = pizzaName;
+            cartItem.querySelector('.cart--item--qt').innerHTML = cart[i].qt;
+
+
+            c('.cart').append(cartItem);//Add a cart os itens clonados de cart item// a classe acima cart--item é apenas um model que fica oculto
+        }
+
+    }else{
+        c('aside').classList.remove('show');
+    }
+}
