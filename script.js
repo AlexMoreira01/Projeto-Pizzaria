@@ -117,16 +117,36 @@ c('.pizzaInfo--addButton').addEventListener('click', ()=>{
     closeModal(); 
 });
 
+c('.menu-openner').addEventListener('click', () => {
+    //Esta com o left em 100vh/ totalmente para a esquerda para nao aparecer
+    if(cart.length > 0){
+        c('aside').style.left = '0';
+    }
+})
+
+c('.menu-closer').addEventListener('click', () => {
+    c('aside').style.left = '100vw';
+})
+
 function updateCart() {
+    c('.menu-openner span').innerHTML = cart.length;
+
     if(cart.length > 0){//Caso tenha itens no carrinho
         c('aside').classList.add('show');
         c('.cart').innerHTML = '';//ira sempre zerar e mostrar a list dos itens/ primeiro zera dps o append
+
+        let subtotal = 0;
+        let desconto = 0;
+        let total = 0;
+        //Dentro do for preenche o subtotal e so dps do for preeche o desconto pq ele depende do subtotal
+
         for(let i in cart ){
             //Acesadno o json e procura o itens que tenham os mesmos ids que tem nos temos
             //Find chama o item e retorna para ele :        busca
             let pizzaItem = pizzaJson.find((item)=> item.id == cart[i].id)//Se tem o id do item e ira procurar o id dentro do json e retorna o item inteiro
             // let pizzaItem = pizzaJson.find((item)=>{//item == itens do json //Find chama o item e retorna para ele :
             //     return item.id = cart[id].id;})
+            subtotal += pizzaItem.price * cart[i].qt// calcula os subtotais de todos os itens
 
             let cartItem = c('.models .cart--item').cloneNode(true);//Selecionando a class e a clonando todos os itens dentro para dps exibir
             
@@ -147,12 +167,36 @@ function updateCart() {
             cartItem.querySelector('img').src = pizzaItem.img;
             cartItem.querySelector('.cart--item-nome').innerHTML = pizzaName;
             cartItem.querySelector('.cart--item--qt').innerHTML = cart[i].qt;
+            cartItem.querySelector('.cart--item-qtmenos').addEventListener('click', ()=>{
+                if(cart[i].qt > 1){
+                    cart[i].qt--;
+                }else{//Removendo o item i , 1 == apenas um item sera removido
+                    cart.splice(i,1);
+                }
+                updateCart();
+            })
+            //Função anonima
+            cartItem.querySelector('.cart--item-qtmais').addEventListener('click', ()=>{
+                cart[i].qt++;//Incrementando em um intem especifico de acordo com a posição no for
+                updateCart();//Rodando a proprafunção/ ela ira reatualizar o carrinho/ ja atualiza tudo dentro do carrinho de todos os intens
+            })  
 
 
             c('.cart').append(cartItem);//Add a cart os itens clonados de cart item// a classe acima cart--item é apenas um model que fica oculto
         }
 
+        desconto = subtotal*0.1;
+        total = subtotal - desconto;
+
+        //Pegando o ultimo item
+        c('.subtotal span:last-child').innerHTML= `R$ ${subtotal.toFixed(2)}`;
+
+        c('.desconto span:last-child').innerHTML= `R$ ${desconto.toFixed(2)}`;
+
+        c('.total span:last-child').innerHTML= `R$ ${total.toFixed(2)}`;
+
     }else{
         c('aside').classList.remove('show');
+        c('aside').style.left = '100vw';// efeito de fechar no celular
     }
 }
